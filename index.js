@@ -16,6 +16,7 @@ app.use(cookieParser());
 const { check, validationResult } = require("express-validator");
 app.use(express.json())
 require('dotenv').config()
+
 const requireAuth = (req, res, next) => {
     const token = req.cookies.jwt;
     if (token) {
@@ -26,6 +27,23 @@ const requireAuth = (req, res, next) => {
         res.redirect("/login");
     }
 };
+
+const extractId = (req, res, next) => {
+    const token = req.cookies.jwt;
+    if (token) {
+        jwt.verify(token, 'torrent', (err, decoded) => {
+            if (err) {
+                return res.redirect("/login");
+            } else {
+                const userId = decoded.id;
+                req.userId = userId;
+                next();
+            }
+        });
+    } else {
+        res.redirect("/login");
+    }
+}
 
 const checkIfUser = (req, res, next) => {
     const token = req.cookies.jwt;
@@ -45,6 +63,7 @@ const checkIfUser = (req, res, next) => {
         next();
     }
 };
+
 app.get("*", checkIfUser);
 
 app.get("/signout", (req, res) => {
@@ -52,12 +71,12 @@ app.get("/signout", (req, res) => {
     res.redirect("/");
 });
 
-app.get("/home", requireAuth, (req, res) => {
+app.get("/home", requireAuth, extractId ,  (req, res) => {
     // result ==> array of objects
     Articles.find()
         .sort({ createdAt: -1 })
         .then((result) => {
-            res.render("index", { arr: result, moment: moment });
+            res.render("index", { arr: result, moment: moment , userId: req.userId});
         })
         .catch((err) => {
             console.log(err);
@@ -67,6 +86,11 @@ app.get("/home", requireAuth, (req, res) => {
 app.get("/", (req, res) => {
     res.render("before");
 });
+
+/*
+    get => لما تروح 
+    post => اكشن معين هتعمله
+*/
 
 app.get("/user/add", requireAuth, (req, res) => {
     res.render("user/add");
@@ -131,11 +155,12 @@ app.get("/forget_password", (req, res) => {
     res.render("authUser/forget_password");
 });
 
-
+// Post request for add articles
 app.post("/user/add", (req, res) => {
+    // req.body  ==> info. of details of articles
     Articles.create(req.body)
         .then(() => { 
-            res.redirect('/home') 
+            res.redirect('/home');
         })
         .catch((err) => {
         console.log(err)
@@ -156,27 +181,30 @@ app.post("/user/update/:id", (req, res) => {
         });
 });
 
-app.get("/user/update/:id", requireAuth, (req, res) => {
+app.get("/user/update/:id", requireAuth, extractId , (req, res) => {
     Articles.findById(req.params.id)
         .then((result) => {
-            res.render("user/update", { obj: result, moment: moment });
+            res.render("user/update", { obj: result, moment: moment , userId: req.userId});
         })
         .catch((err) => {
             console.log(err);
         });
 });
 
-app.get("/user/view/:id", requireAuth, (req, res) => {
-    const ID_USER = req.params.id;
-    Articles.findById(ID_USER).then((result) => {
-        res.render("user/view", { arr: result, moment: moment });
+app.get("/user/view/:id", requireAuth, extractId , (req, res) => {
+    const ID_USER = req.params.id; // req.params.id  ==>ID_USER
+
+    Articles.findById(ID_USER)
+    .then((result) => {
+        res.render("user/view", { arr: result, moment: moment , userId: req.userId });
     }).catch((err) => {
         console.log(err);
     })
 });
 
 app.delete('/user/delete/:id', requireAuth, (req, res) => {
-    Articles.deleteOne({ _id: req.params.id }).then((result) => {
+    Articles.deleteOne({ _id: req.params.id })
+    .then((result) => {
         res.redirect("/home");
     });
 })

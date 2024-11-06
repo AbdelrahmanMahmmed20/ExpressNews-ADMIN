@@ -110,15 +110,15 @@
                 </textarea>
             </div>
             <div class="buttons">
-                <form action="/user/update/<%= obj._id %>" method="post">
-                    <button type="submit" class="update">تحديث المقالة</button>
-                </form>
-
-                <form action="/user/delete/<%= obj._id %>?_method=DELETE" method="post">
-                    <button class="delete">حذف</button>
-                </form>
-
-
+                <% if (userId === obj.id) { %>
+                    <form action="/user/update/<%= obj._id %>" method="post">
+                        <button type="submit" class="update">تحديث المقالة</button>
+                    </form>
+    
+                    <form action="/user/delete/<%= obj._id %>?_method=DELETE" method="post">
+                        <button class="delete">حذف</button>
+                    </form>
+                <% } %>
 
             </div>
         </form>

@@ -112,13 +112,15 @@
             </h2>
             <p><%= arr.bodyOfArticle %></p>
             <div class="buttons">
-                <form action="/user/update/<%= arr._id %>?_method=PUT" method="get">
-                    <button class="edit">تعديل 🖉</button>
-                </form>
-            
-                <form action="/user/delete/<%= arr._id %>?_method=DELETE" method="post" onsubmit="return confirmDelete()">
-                    <button class="delete">حذف 🗑</button>
-                </form>
+                <% if (arr.id === userId) { %>
+                    <form action="/user/update/<%= arr._id %>?_method=PUT" method="get">
+                        <button class="edit">تعديل 🖉</button>
+                    </form>
+                
+                    <form action="/user/delete/<%= arr._id %>?_method=DELETE" method="post" onsubmit="return confirmDelete()">
+                        <button class="delete">حذف 🗑</button>
+                    </form>
+                <% } %>
             </div>
         </div>
     </div>
